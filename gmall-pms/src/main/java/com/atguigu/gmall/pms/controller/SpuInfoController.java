@@ -1,12 +1,14 @@
 package com.atguigu.gmall.pms.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.pms.vo.SupInfoVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gmall.pms.entity.SpuInfoEntity;
 import com.atguigu.gmall.pms.service.SpuInfoService;
-
-
 
 
 /**
@@ -32,6 +32,13 @@ import com.atguigu.gmall.pms.service.SpuInfoService;
 public class SpuInfoController {
     @Autowired
     private SpuInfoService spuInfoService;
+
+    @GetMapping
+    public Resp<PageVo> queryByCidOrCondition(QueryCondition condition, @RequestParam(value = "catId") Long catId) {
+        PageVo pageVo = this.spuInfoService.queryByCidOrCondition(condition, catId);
+        return Resp.ok(pageVo);
+    }
+
 
     /**
      * 列表
@@ -52,8 +59,8 @@ public class SpuInfoController {
     @ApiOperation("详情查询")
     @GetMapping("/info/{id}")
     @PreAuthorize("hasAuthority('pms:spuinfo:info')")
-    public Resp<SpuInfoEntity> info(@PathVariable("id") Long id){
-		SpuInfoEntity spuInfo = spuInfoService.getById(id);
+    public Resp<SpuInfoEntity> info(@PathVariable("id") Long id) {
+        SpuInfoEntity spuInfo = spuInfoService.getById(id);
 
         return Resp.ok(spuInfo);
     }
@@ -64,8 +71,8 @@ public class SpuInfoController {
     @ApiOperation("保存")
     @PostMapping("/save")
     @PreAuthorize("hasAuthority('pms:spuinfo:save')")
-    public Resp<Object> save(@RequestBody SpuInfoEntity spuInfo){
-		spuInfoService.save(spuInfo);
+    public Resp<Object> save(@RequestBody SupInfoVo spuInfovo) {
+        spuInfoService.saveAllAttrs(spuInfovo);
 
         return Resp.ok(null);
     }
@@ -76,8 +83,8 @@ public class SpuInfoController {
     @ApiOperation("修改")
     @PostMapping("/update")
     @PreAuthorize("hasAuthority('pms:spuinfo:update')")
-    public Resp<Object> update(@RequestBody SpuInfoEntity spuInfo){
-		spuInfoService.updateById(spuInfo);
+    public Resp<Object> update(@RequestBody SpuInfoEntity spuInfo) {
+        spuInfoService.updateById(spuInfo);
 
         return Resp.ok(null);
     }
@@ -88,8 +95,8 @@ public class SpuInfoController {
     @ApiOperation("删除")
     @PostMapping("/delete")
     @PreAuthorize("hasAuthority('pms:spuinfo:delete')")
-    public Resp<Object> delete(@RequestBody Long[] ids){
-		spuInfoService.removeByIds(Arrays.asList(ids));
+    public Resp<Object> delete(@RequestBody Long[] ids) {
+        spuInfoService.removeByIds(Arrays.asList(ids));
 
         return Resp.ok(null);
     }

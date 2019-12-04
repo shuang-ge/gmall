@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.ws.Response;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -27,7 +28,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/pms/oss")
-public class OosController {
+public class OssController {
     @GetMapping("/policy")
     public Resp<Object> policy() {
         String accessId = "LTAI4FwkQ2eq2J9enpbJham3"; // 请填写您的AccessKeyId。
@@ -65,9 +66,8 @@ public class OosController {
             // respMap.put("expire", formatISO8601Date(expiration));
 
             return Resp.ok(respMap);
-        } catch (Exception e) {
-            // Assert.fail(e.getMessage());
-            System.out.println(e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
         return Resp.ok(null);
     }

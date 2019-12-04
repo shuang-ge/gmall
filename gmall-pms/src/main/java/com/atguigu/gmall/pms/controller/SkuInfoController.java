@@ -1,6 +1,7 @@
 package com.atguigu.gmall.pms.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -17,8 +18,6 @@ import com.atguigu.gmall.pms.entity.SkuInfoEntity;
 import com.atguigu.gmall.pms.service.SkuInfoService;
 
 
-
-
 /**
  * sku信息
  *
@@ -32,6 +31,14 @@ import com.atguigu.gmall.pms.service.SkuInfoService;
 public class SkuInfoController {
     @Autowired
     private SkuInfoService skuInfoService;
+
+    @GetMapping("/{spuId}")
+    public Resp<List<SkuInfoEntity>> querySkuInfo(@PathVariable("spuId") Long spuId) {
+        List<SkuInfoEntity> list = skuInfoService.querySkuInfo(spuId);
+
+        return Resp.ok(list);
+
+    }
 
     /**
      * 列表
@@ -52,8 +59,8 @@ public class SkuInfoController {
     @ApiOperation("详情查询")
     @GetMapping("/info/{skuId}")
     @PreAuthorize("hasAuthority('pms:skuinfo:info')")
-    public Resp<SkuInfoEntity> info(@PathVariable("skuId") Long skuId){
-		SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
+    public Resp<SkuInfoEntity> info(@PathVariable("skuId") Long skuId) {
+        SkuInfoEntity skuInfo = skuInfoService.getById(skuId);
 
         return Resp.ok(skuInfo);
     }
@@ -64,8 +71,8 @@ public class SkuInfoController {
     @ApiOperation("保存")
     @PostMapping("/save")
     @PreAuthorize("hasAuthority('pms:skuinfo:save')")
-    public Resp<Object> save(@RequestBody SkuInfoEntity skuInfo){
-		skuInfoService.save(skuInfo);
+    public Resp<Object> save(@RequestBody SkuInfoEntity skuInfo) {
+        skuInfoService.save(skuInfo);
 
         return Resp.ok(null);
     }
@@ -76,8 +83,8 @@ public class SkuInfoController {
     @ApiOperation("修改")
     @PostMapping("/update")
     @PreAuthorize("hasAuthority('pms:skuinfo:update')")
-    public Resp<Object> update(@RequestBody SkuInfoEntity skuInfo){
-		skuInfoService.updateById(skuInfo);
+    public Resp<Object> update(@RequestBody SkuInfoEntity skuInfo) {
+        skuInfoService.updateById(skuInfo);
 
         return Resp.ok(null);
     }
@@ -88,8 +95,8 @@ public class SkuInfoController {
     @ApiOperation("删除")
     @PostMapping("/delete")
     @PreAuthorize("hasAuthority('pms:skuinfo:delete')")
-    public Resp<Object> delete(@RequestBody Long[] skuIds){
-		skuInfoService.removeByIds(Arrays.asList(skuIds));
+    public Resp<Object> delete(@RequestBody Long[] skuIds) {
+        skuInfoService.removeByIds(Arrays.asList(skuIds));
 
         return Resp.ok(null);
     }
