@@ -19,14 +19,19 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedLongTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,6 +138,7 @@ public class SearchServiceImpl implements SearchService {
             String source = hit.getSourceAsString();
             try {
                 Goods goods = objectMapper.readValue(source, Goods.class);
+                goods.setTitle(hit.getHighlightFields().get("title").getFragments().toString());
                 goodsList.add(goods);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
@@ -140,10 +146,31 @@ public class SearchServiceImpl implements SearchService {
         }
         responseVo.setProducts(goodsList);
 
+        //获取嵌套聚合对象
+        ParsedNested attrAgg = (ParsedNested) stringAggregationMap.get("attrAgg");
 
-        responseVo.setAttrs(null);
+        Map<String, Aggregation> attrAggs = attrAgg.getAggregations().asMap();
+        ParsedLongTerms attrIdAgg = (ParsedLongTerms) attrAggs.get("attrIdAgg");
 
+        List<? extends Terms.Bucket> buckets = attrIdAgg.getBuckets();
+        if (!CollectionUtils.isEmpty(buckets)) {
+            List<SearchResponseAttrVO> list = buckets.stream().map(bucket -> {
+                SearchResponseAttrVO attrVO = new SearchResponseAttrVO();
+                attrVO.setProductAttributeId(bucket.getKeyAsNumber().longValue());
+                ParsedStringTerms attrNameAgg = (ParsedStringTerms) ((Terms.Bucket) bucket).getAggregations().asMap().get("attrNameAgg");
+                attrVO.setName(attrNameAgg.getBuckets().get(0).getKeyAsString());
+                ParsedStringTerms attrValueAgg = (ParsedStringTerms) ((Terms.Bucket) bucket).getAggregations().asMap().get("attrValueAgg");
 
+                List<? extends Terms.Bucket> valueAggBuckets = attrValueAgg.getBuckets();
+                List<String> valueList = valueAggBuckets.stream().map(valuebucket -> {
+                    String string = ((Terms.Bucket) valuebucket).getKeyAsString();
+                    return string;
+                }).collect(Collectors.toList());
+                attrVO.setValue(valueList);
+                return attrVO;
+            }).collect(Collectors.toList());
+            responseVo.setAttrs(list);
+        }
         return responseVo;
     }
 
@@ -247,6 +274,9 @@ public class SearchServiceImpl implements SearchService {
 
 
         System.out.println(sourceBuilder.toString());
+
+        sourceBuilder.fetchSource(new String[]{"skuId", "price", "title", "pic"}, null);
+
 
         //查询参数
         SearchRequest searchRequest = new SearchRequest("goods");

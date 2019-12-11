@@ -37,4 +37,7 @@ public interface GmallPmsApi {
 
     @GetMapping("pms/productattrvalue/{spuId}")
     public Resp<List<ProductAttrValueEntity>> queryProductAttrBySpuId(@PathVariable("spuId") Long spuId);
+
+    @GetMapping("pms/spuinfo/info/{id}")
+    public Resp<SpuInfoEntity> querySpuInfoById(@PathVariable("id") Long id);
 }
