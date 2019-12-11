@@ -21,5 +21,12 @@ public interface SpuInfoService extends IService<SpuInfoEntity> {
     PageVo queryByCidOrCondition(QueryCondition condition, Long catId);
 
     void saveAllAttrs(SupInfoVo spuInfovo);
+
+    void saveSkuInfo(SupInfoVo spuInfovo, Long spuId);
+
+    void saveProAttr(SupInfoVo spuInfovo, Long spuId);
+
+    Long saveSpuInfo(SupInfoVo spuInfovo);
 }
+
 

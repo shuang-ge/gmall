@@ -1,14 +1,16 @@
 package com.atguigu.gmall.pms.service.impl;
 
-import com.atguigu.gmall.pms.dao.*;
 import com.atguigu.gmall.pms.entity.*;
+import com.atguigu.gmall.pms.dao.*;
 import com.atguigu.gmall.pms.feign.SmsServiceFeign;
 import com.atguigu.gmall.pms.service.SkuImagesService;
 import com.atguigu.gmall.pms.service.SkuSaleAttrValueService;
+import com.atguigu.gmall.pms.service.SpuInfoDescService;
 import com.atguigu.gmall.pms.vo.BaseAttrVo;
 import com.atguigu.gmall.pms.vo.SkuInfoVo;
 import com.atguigu.gmall.pms.vo.SupInfoVo;
 import com.atguigu.gmall.sms.vo.SkuSaleVo;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import com.atguigu.core.bean.Query;
 import com.atguigu.core.bean.QueryCondition;
 
 import com.atguigu.gmall.pms.service.SpuInfoService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 
@@ -50,6 +53,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     private SkuSaleAttrValueService skuSaleAttrValueService;
+
+    @Autowired
+    private SpuInfoDescService spuInfoDescService;
+
+    @Autowired
+    private AttrDao attrDao;
+
 
     @Override
     public PageVo queryPage(QueryCondition params) {
@@ -83,32 +93,28 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     }
 
     @Override
+    @GlobalTransactional
     public void saveAllAttrs(SupInfoVo spuInfovo) {
+
         //spu相关的表
         //pms_spu_info
-        SpuInfoEntity spuInfoEntity = new SpuInfoEntity();
-        BeanUtils.copyProperties(spuInfovo, spuInfoEntity);
-        spuInfoEntity.setCreateTime(new Date());
-        spuInfoEntity.setUodateTime(spuInfoEntity.getCreateTime());
-        this.save(spuInfoEntity);
-        Long spuId = spuInfoEntity.getId();//商品spuid
+        Long spuId = saveSpuInfo(spuInfovo);
+
         //pms_spu_info_desc
-        List<String> images = spuInfovo.getSpuImages();
-        if (!CollectionUtils.isEmpty(images)) {
-            SpuInfoDescEntity spuInfoDescEntity = new SpuInfoDescEntity();
-            spuInfoDescEntity.setSpuId(spuId);
-            spuInfoDescEntity.setDecript(StringUtils.join(images, ","));
-            spuInfoDescDao.insert(spuInfoDescEntity);//保存数据
-        }
+        this.spuInfoDescService.saveSpuDesc(spuInfovo, spuId);
+
+
         //pms_product_attr_value
-        List<BaseAttrVo> baseAttrs = spuInfovo.getBaseAttrs();
-        baseAttrs.forEach(productAttrValueEntity -> {
-            productAttrValueEntity.setSpuId(spuId);
-            productAttrValueDao.insert(productAttrValueEntity);
-        });
+        saveProAttr(spuInfovo, spuId);
 
         //sku相关的表
         //pms_sku_info
+        saveSkuInfo(spuInfovo, spuId);
+        //int i = 1 / 0;
+
+    }
+
+    public void saveSkuInfo(SupInfoVo spuInfovo, Long spuId) {
         List<SkuInfoVo> skus = spuInfovo.getSkus();
         if (!CollectionUtils.isEmpty(skus)) {
             skus.forEach(skuInfoVo -> {
@@ -137,12 +143,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                     this.skuImagesService.saveBatch(skuImageses);
                 }
                 // pms_sku_sale_attr_value
-                SkuSaleAttrValueEntity skuSaleAttrValueEntity = new SkuSaleAttrValueEntity();
 
                 List<SkuSaleAttrValueEntity> saleAttrs = skuInfoVo.getSaleAttrs();
                 if (!CollectionUtils.isEmpty(saleAttrs)) {
                     saleAttrs.forEach(skuSaleAttr -> {
                         skuSaleAttr.setSkuId(skuId);
+                        AttrEntity attrEntity = this.attrDao.selectById(skuSaleAttr.getAttrId());
+                        skuSaleAttr.setAttrName(attrEntity.getAttrName());
                     });
                     this.skuSaleAttrValueService.saveBatch(saleAttrs);
                 }
@@ -153,7 +160,24 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 smsServiceFeign.saveSale(skuSaleVo);
             });
         }
+    }
 
+    public void saveProAttr(SupInfoVo spuInfovo, Long spuId) {
+        List<BaseAttrVo> baseAttrs = spuInfovo.getBaseAttrs();
+        baseAttrs.forEach(productAttrValueEntity -> {
+            productAttrValueEntity.setSpuId(spuId);
+            productAttrValueDao.insert(productAttrValueEntity);
+        });
+    }
+
+    @Transactional
+    public Long saveSpuInfo(SupInfoVo spuInfovo) {
+        SpuInfoEntity spuInfoEntity = new SpuInfoEntity();
+        BeanUtils.copyProperties(spuInfovo, spuInfoEntity);
+        spuInfoEntity.setCreateTime(new Date());
+        spuInfoEntity.setUodateTime(spuInfoEntity.getCreateTime());
+        this.save(spuInfoEntity);
+        return spuInfoEntity.getId();
     }
 
 }

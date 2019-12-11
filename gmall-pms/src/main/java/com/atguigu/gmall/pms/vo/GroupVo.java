@@ -6,7 +6,6 @@ import com.atguigu.gmall.pms.entity.AttrGroupEntity;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.management.relation.Relation;
 import java.util.List;
 
 /**

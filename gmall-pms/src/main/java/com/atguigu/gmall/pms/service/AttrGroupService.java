@@ -1,6 +1,5 @@
 package com.atguigu.gmall.pms.service;
 
-import com.atguigu.gmall.pms.entity.AttrEntity;
 import com.atguigu.gmall.pms.vo.GroupVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.atguigu.gmall.pms.entity.AttrGroupEntity;

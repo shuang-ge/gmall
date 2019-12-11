@@ -1,6 +1,7 @@
-package com.atguigu.gmall.pms.config;
+package com.atguigu.gmall.sms.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.seata.rm.datasource.DataSourceProxy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,6 @@ public class DataSourceConfig {
         hikariDataSource.setPassword(password);
         hikariDataSource.setJdbcUrl(url);
         hikariDataSource.setDriverClassName(driverClassName);
-        return hikariDataSource;
+        return new DataSourceProxy(hikariDataSource);
     }
-
 }

@@ -11,6 +11,8 @@
 
     <groupId>com.atguigu</groupId>
     <artifactId>gmall-sms-interface</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
     <dependencies>
         <dependency>
             <groupId>com.atguigu</groupId>
@@ -28,10 +30,6 @@
                 <exclusion>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.baomidou</groupId>
-                    <artifactId>mybatis-plus</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

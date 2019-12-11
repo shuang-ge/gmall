@@ -2,7 +2,6 @@ package com.atguigu.gmall.pms.controller;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 
 import com.atguigu.core.bean.PageVo;
@@ -37,6 +36,13 @@ public class SpuInfoController {
     public Resp<PageVo> queryByCidOrCondition(QueryCondition condition, @RequestParam(value = "catId") Long catId) {
         PageVo pageVo = this.spuInfoService.queryByCidOrCondition(condition, catId);
         return Resp.ok(pageVo);
+    }
+
+    @PostMapping("/queryPage")
+    public Resp<List<SpuInfoEntity>> queryPage(@RequestBody QueryCondition queryCondition) {
+        PageVo page = spuInfoService.queryPage(queryCondition);
+        List<SpuInfoEntity> list = (List<SpuInfoEntity>) page.getList();
+        return Resp.ok(list);
     }
 
 
