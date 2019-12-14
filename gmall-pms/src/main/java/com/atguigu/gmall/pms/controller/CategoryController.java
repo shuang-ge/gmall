@@ -7,6 +7,7 @@ import java.util.List;
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.pms.vo.CategoryVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,8 +33,16 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("/category23/{pid}")
+    public Resp<List<CategoryVo>> querySubCatgoryById(@PathVariable("pid") Long pid) {
+        List<CategoryVo> categoryVos = this.categoryService.querySubCatgoryById(pid);
+        System.out.println(categoryVos);
+        return Resp.ok(categoryVos);
+    }
+
+
     @GetMapping
-    public Resp<List<CategoryEntity>> queryByIdOrLevel(@RequestParam(value = "parentCid",required = false)Long parentCid,@RequestParam(value = "level",defaultValue = "0")Integer level){
+    public Resp<List<CategoryEntity>> queryByIdOrLevel(@RequestParam(value = "parentCid", required = false) Long parentCid, @RequestParam(value = "level", defaultValue = "0") Integer level) {
         QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
         if (level != 0) {
             wrapper.eq("cat_level", level);
@@ -44,7 +53,6 @@ public class CategoryController {
         List<CategoryEntity> list = categoryService.list(wrapper);
         return Resp.ok(list);
     }
-
 
 
     /**

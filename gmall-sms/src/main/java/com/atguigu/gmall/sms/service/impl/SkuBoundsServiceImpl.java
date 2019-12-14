@@ -4,10 +4,13 @@ import com.atguigu.gmall.sms.dao.SkuFullReductionDao;
 import com.atguigu.gmall.sms.dao.SkuLadderDao;
 import com.atguigu.gmall.sms.entity.SkuFullReductionEntity;
 import com.atguigu.gmall.sms.entity.SkuLadderEntity;
+import com.atguigu.gmall.sms.vo.SaleVo;
 import com.atguigu.gmall.sms.vo.SkuSaleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service("skuBoundsService")
 public class SkuBoundsServiceImpl extends ServiceImpl<SkuBoundsDao, SkuBoundsEntity> implements SkuBoundsService {
+    @Autowired
+    private SkuBoundsDao skuBoundsDao;
 
     @Autowired
     private SkuLadderDao skuLadderDao;
@@ -73,6 +78,51 @@ public class SkuBoundsServiceImpl extends ServiceImpl<SkuBoundsDao, SkuBoundsEnt
         skuFullReductionDao.insert(skuFullReductionEntity);
 
 
+    }
+
+    @Override
+    public List<SaleVo> queryBoundsBySkuId(Long skuId) {
+        List<SaleVo> saleVos = new ArrayList<>();
+        //积分信息
+        SkuBoundsEntity skuBoundsEntity = this.skuBoundsDao.selectOne(new QueryWrapper<SkuBoundsEntity>().eq("sku_id", skuId));
+        SaleVo broundSaleVo = new SaleVo();
+        broundSaleVo.setType("积分");
+        StringBuffer buffer = new StringBuffer();
+        if (skuBoundsEntity != null) {
+            if (skuBoundsEntity.getGrowBounds() != null) {
+                buffer.append("赠送成长积分：" + skuBoundsEntity.getGrowBounds() + "分");
+            }
+            if (skuBoundsEntity.getBuyBounds() != null) {
+                if (buffer.equals("")) {
+                    buffer.append("赠送购物积分：" + skuBoundsEntity.getBuyBounds() + "分");
+                } else {
+                    buffer.append(",赠送购物积分：" + skuBoundsEntity.getBuyBounds() + "分");
+                }
+            }
+        }
+        broundSaleVo.setDesc(buffer.toString());
+        saleVos.add(broundSaleVo);
+        //满减信息
+        SaleVo fullSaleVo = new SaleVo();
+        fullSaleVo.setType("满减");
+        SkuFullReductionEntity skuFullReductionEntity = this.skuFullReductionDao.selectOne(new QueryWrapper<SkuFullReductionEntity>().eq("sku_id", skuId));
+        buffer = new StringBuffer();
+        if (skuFullReductionEntity != null) {
+            buffer.append("满" + skuFullReductionEntity.getFullPrice() + "减" + skuFullReductionEntity.getReducePrice() + "元");
+            fullSaleVo.setDesc(buffer.toString());
+        }
+        saleVos.add(fullSaleVo);
+        //折扣信息
+        SaleVo ladderSaleVo = new SaleVo();
+        ladderSaleVo.setType("折扣");
+        buffer = new StringBuffer();
+        SkuLadderEntity skuLadderEntity = this.skuLadderDao.selectOne(new QueryWrapper<SkuLadderEntity>().eq("sku_id", skuId));
+        if (skuLadderEntity != null) {
+            buffer.append("满" + skuLadderEntity.getFullCount() + "件" + skuLadderEntity.getDiscount().divide(new BigDecimal(10)) + "折");
+            ladderSaleVo.setDesc(buffer.toString());
+        }
+        saleVos.add(ladderSaleVo);
+        return saleVos;
     }
 
 }

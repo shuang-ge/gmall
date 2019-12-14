@@ -1,11 +1,13 @@
 package com.atguigu.gmall.sms.controller;
 
 import java.util.Arrays;
+import java.util.List;
 
 
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.sms.vo.SaleVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,14 @@ import com.atguigu.gmall.sms.vo.SkuSaleVo;
 public class SkuBoundsController {
     @Autowired
     private SkuBoundsService skuBoundsService;
+
+    @GetMapping("sales/{skuId}")
+    public Resp<List<SaleVo>> queryBoundsAndAdderBySkuId(@PathVariable("skuId") Long skuId) {
+        List<SaleVo> saleVos = this.skuBoundsService.queryBoundsBySkuId(skuId);
+        return Resp.ok(saleVos);
+
+    }
+
 
     @PostMapping("/sku/save")
     public Resp<Object> saveSale(@RequestBody SkuSaleVo skuSaleVo) {

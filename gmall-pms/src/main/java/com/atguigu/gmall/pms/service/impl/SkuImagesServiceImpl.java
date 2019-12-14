@@ -12,6 +12,8 @@ import com.atguigu.gmall.pms.dao.SkuImagesDao;
 import com.atguigu.gmall.pms.entity.SkuImagesEntity;
 import com.atguigu.gmall.pms.service.SkuImagesService;
 
+import java.util.List;
+
 
 @Service("skuImagesService")
 public class SkuImagesServiceImpl extends ServiceImpl<SkuImagesDao, SkuImagesEntity> implements SkuImagesService {
@@ -24,6 +26,13 @@ public class SkuImagesServiceImpl extends ServiceImpl<SkuImagesDao, SkuImagesEnt
         );
 
         return new PageVo(page);
+    }
+
+    @Override
+    public List<SkuImagesEntity> querySkuImagesBySkuId(Long skuId) {
+        QueryWrapper<Object> wrapper = new QueryWrapper<>();
+        List<SkuImagesEntity> imagesList = this.list(new QueryWrapper<SkuImagesEntity>().eq("sku_id", skuId));
+        return imagesList;
     }
 
 }
