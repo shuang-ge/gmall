@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -35,6 +37,8 @@ public class ItemServiceImpl implements ItemService {
     private GmallWmsClient gmallWmsClient;
     @Autowired
     private GmallSmsClient gmallSmsClient;
+    @Autowired
+    private ThreadPoolExecutor threadPool;
 
 
     @Override
@@ -42,62 +46,87 @@ public class ItemServiceImpl implements ItemService {
         ItemVo itemVo = new ItemVo();
         //skuId
         itemVo.setSkuId(skuId);
-        //根据skuId查询skuInfo
-        Resp<SkuInfoEntity> skuInfoEntityResp = this.gmallPmsClient.querySkuIdBySkuId(skuId);
-        SkuInfoEntity skuInfoEntity = skuInfoEntityResp.getData();
-        //skuTitle
-        itemVo.setSkuTitle(skuInfoEntity.getSkuTitle());
-        //subtitle
-        itemVo.setSubTitle(skuInfoEntity.getSkuSubtitle());
-        //weight
-        itemVo.setWeight(skuInfoEntity.getWeight());
-        //price
-        itemVo.setPrice(skuInfoEntity.getPrice());
-        //spuId
-        Long spuId = skuInfoEntity.getSpuId();
-        itemVo.setSpuId(spuId);
-        //spuName
-        Resp<SpuInfoEntity> spuInfoEntityResp = this.gmallPmsClient.querySpuInfoById(spuId);
-        SpuInfoEntity spuInfoEntity = spuInfoEntityResp.getData();
-        itemVo.setSpuName(spuInfoEntity.getSpuName());
-        //brandEntity
-        Resp<BrandEntity> brandEntityResp = this.gmallPmsClient.queryBrandById(skuInfoEntity.getBrandId());
-        BrandEntity brandEntity = brandEntityResp.getData();
-        itemVo.setBrandEntity(brandEntity);
-        //categoryEntity
-        Resp<CategoryEntity> categoryEntityResp = this.gmallPmsClient.queryCategoryById(skuInfoEntity.getCatalogId());
-        CategoryEntity categoryEntity = categoryEntityResp.getData();
-        itemVo.setCategoryEntity(categoryEntity);
-        //pics
-        Resp<List<SkuImagesEntity>> skuImageResp = this.gmallPmsClient.querySkuImagesBySkuId(skuId);
-        List<SkuImagesEntity> skuImageList = skuImageResp.getData();
-        itemVo.setPics(skuImageList);
-        //store  查询库存
-        Resp<List<WareSkuEntity>> wareSkuResp = this.gmallWmsClient.queryWareSkuBySkuId(skuId);
-        List<WareSkuEntity> wareSkuEntities = wareSkuResp.getData();
-        itemVo.setStore(wareSkuEntities.stream().anyMatch(wareSkuEntity -> wareSkuEntity.getStock() > 0));
-        //Images ,spudesc
-        Resp<SpuInfoDescEntity> spuInfoDescEntityResp = this.gmallPmsClient.querySpuDescBySpuId(spuId);
-        SpuInfoDescEntity spuInfoDescEntity = spuInfoDescEntityResp.getData();
-        String decript = spuInfoDescEntity.getDecript();
-        if (decript != null) {
-            String[] split = StringUtils.split(decript, ",");
-            itemVo.setImages(Arrays.asList(split));
-        }
-        //sales
-        Resp<List<SaleVo>> saleVoListResp = this.gmallSmsClient.queryBoundsAndAdderBySkuId(skuId);
-        List<SaleVo> saleVoList = saleVoListResp.getData();
-        itemVo.setSales(saleVoList);
+        CompletableFuture<SkuInfoEntity> skuCompletableFuture = CompletableFuture.supplyAsync(() -> {
+            //根据skuId查询skuInfo
+            Resp<SkuInfoEntity> skuInfoEntityResp = this.gmallPmsClient.querySkuIdBySkuId(skuId);
+            SkuInfoEntity skuInfoEntity = skuInfoEntityResp.getData();
+            //skuTitle
+            itemVo.setSkuTitle(skuInfoEntity.getSkuTitle());
+            //subtitle
+            itemVo.setSubTitle(skuInfoEntity.getSkuSubtitle());
+            //weight
+            itemVo.setWeight(skuInfoEntity.getWeight());
+            //price
+            itemVo.setPrice(skuInfoEntity.getPrice());
+            //spuId
+            Long spuId = skuInfoEntity.getSpuId();
+            itemVo.setSpuId(spuId);
+            return skuInfoEntity;
+        }, threadPool);
 
-        //saleAttrs  ，根据spuId 查询销售属性
-        Resp<List<SkuSaleAttrValueEntity>> skuSaleAttrValueResp = this.gmallPmsClient.querySkuSaleAttrBySpuId(spuId);
-        List<SkuSaleAttrValueEntity> skuSaleAttrValueList = skuSaleAttrValueResp.getData();
-        itemVo.setSaleAttrs(skuSaleAttrValueList);
+        CompletableFuture<Void> spuNameCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //spuName
+            Resp<SpuInfoEntity> spuInfoEntityResp = this.gmallPmsClient.querySpuInfoById(skuInfoEntity.getSpuId());
+            SpuInfoEntity spuInfoEntity = spuInfoEntityResp.getData();
+            itemVo.setSpuName(spuInfoEntity.getSpuName());
+        }, threadPool);
+        CompletableFuture<Void> brandCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //brandEntity
+            Resp<BrandEntity> brandEntityResp = this.gmallPmsClient.queryBrandById(skuInfoEntity.getBrandId());
+            BrandEntity brandEntity = brandEntityResp.getData();
+            itemVo.setBrandEntity(brandEntity);
+        }, threadPool);
+        CompletableFuture<Void> cateCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //categoryEntity
+            Resp<CategoryEntity> categoryEntityResp = this.gmallPmsClient.queryCategoryById(skuInfoEntity.getCatalogId());
+            CategoryEntity categoryEntity = categoryEntityResp.getData();
+            itemVo.setCategoryEntity(categoryEntity);
+        }, threadPool);
+        CompletableFuture<Void> picsCompletableFuture = CompletableFuture.runAsync(() -> {
+            //pics
+            Resp<List<SkuImagesEntity>> skuImageResp = this.gmallPmsClient.querySkuImagesBySkuId(skuId);
+            List<SkuImagesEntity> skuImageList = skuImageResp.getData();
+            itemVo.setPics(skuImageList);
+        }, threadPool);
 
-        //groupVos
-        Resp<List<ItemGroupVo>> itemGroupVoResp = this.gmallPmsClient.queryItemGroupVoByCatIdAndSpuId(skuInfoEntity.getCatalogId(), spuId);
-        List<ItemGroupVo> itemGroupVos = itemGroupVoResp.getData();
-        itemVo.setGroupVos(itemGroupVos);
+        CompletableFuture<Void> storeCompletableFuture = CompletableFuture.runAsync(() -> {
+            //store  查询库存
+            Resp<List<WareSkuEntity>> wareSkuResp = this.gmallWmsClient.queryWareSkuBySkuId(skuId);
+            List<WareSkuEntity> wareSkuEntities = wareSkuResp.getData();
+            itemVo.setStore(wareSkuEntities.stream().anyMatch(wareSkuEntity -> wareSkuEntity.getStock() > 0));
+        }, threadPool);
+        CompletableFuture<Void> descCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //Images ,spudesc
+            Resp<SpuInfoDescEntity> spuInfoDescEntityResp = this.gmallPmsClient.querySpuDescBySpuId(skuInfoEntity.getSpuId());
+            SpuInfoDescEntity spuInfoDescEntity = spuInfoDescEntityResp.getData();
+            String decript = spuInfoDescEntity.getDecript();
+            if (decript != null) {
+                String[] split = StringUtils.split(decript, ",");
+                itemVo.setImages(Arrays.asList(split));
+            }
+        }, threadPool);
+        CompletableFuture<Void> salesCompletableFuture = CompletableFuture.runAsync(() -> {
+            //sales
+            Resp<List<SaleVo>> saleVoListResp = this.gmallSmsClient.queryBoundsAndAdderBySkuId(skuId);
+            List<SaleVo> saleVoList = saleVoListResp.getData();
+            itemVo.setSales(saleVoList);
+        }, threadPool);
+        CompletableFuture<Void> saleAttrCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //saleAttrs  ，根据spuId 查询销售属性
+            Resp<List<SkuSaleAttrValueEntity>> skuSaleAttrValueResp = this.gmallPmsClient.querySkuSaleAttrBySpuId(skuInfoEntity.getSpuId());
+            List<SkuSaleAttrValueEntity> skuSaleAttrValueList = skuSaleAttrValueResp.getData();
+            itemVo.setSaleAttrs(skuSaleAttrValueList);
+        }, threadPool);
+        CompletableFuture<Void> groupCompletableFuture = skuCompletableFuture.thenAcceptAsync(skuInfoEntity -> {
+            //groupVos
+            Resp<List<ItemGroupVo>> itemGroupVoResp = this.gmallPmsClient.queryItemGroupVoByCatIdAndSpuId(skuInfoEntity.getCatalogId(), skuInfoEntity.getSpuId());
+            List<ItemGroupVo> itemGroupVos = itemGroupVoResp.getData();
+            itemVo.setGroupVos(itemGroupVos);
+        });
+        CompletableFuture.allOf(spuNameCompletableFuture, cateCompletableFuture
+                , picsCompletableFuture, storeCompletableFuture, descCompletableFuture, salesCompletableFuture
+                , saleAttrCompletableFuture, groupCompletableFuture, brandCompletableFuture).join();
+
         return itemVo;
     }
 }
