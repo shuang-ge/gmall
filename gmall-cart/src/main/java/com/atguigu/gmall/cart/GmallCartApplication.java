@@ -1,18 +1,17 @@
-package com.atguigu.gmall.auth;
+package com.atguigu.gmall.cart;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableDiscoveryClient
 @EnableFeignClients
-public class GmallAuthApplication {
+@EnableDiscoveryClient
+public class GmallCartApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GmallAuthApplication.class, args);
+        SpringApplication.run(GmallCartApplication.class, args);
     }
 
 }

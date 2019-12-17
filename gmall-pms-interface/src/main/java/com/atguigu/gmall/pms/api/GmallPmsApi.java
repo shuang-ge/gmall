@@ -1,12 +1,10 @@
 package com.atguigu.gmall.pms.api;
 
-import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
 import com.atguigu.gmall.pms.entity.*;
 import com.atguigu.gmall.pms.vo.CategoryVo;
 import com.atguigu.gmall.pms.vo.ItemGroupVo;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,4 +60,6 @@ public interface GmallPmsApi {
     @GetMapping("pms/attrgroup/group/attrs/{cid}/{spuId}")
     public Resp<List<ItemGroupVo>> queryItemGroupVoByCatIdAndSpuId(@PathVariable("cid") Long cid, @PathVariable("spuId") Long spuId);
 
+    @GetMapping("pms/skusaleattrvalue/cart/{skuId}")
+    public Resp<List<SkuSaleAttrValueEntity>> querySkuSaleAttrBySkuId(@PathVariable("skuId") Long skuId);
 }

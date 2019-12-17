@@ -48,3 +48,7 @@ spring:
             - Path=/api/auth/**
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
+gmall:
+  jwt:
+    pubKeyPath: E:\Git\gmallproject\rsa\\rsa.pub # 公钥地址
+    cookieName: GMALL_TOKEN # cookie的名称
