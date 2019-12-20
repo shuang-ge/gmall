@@ -2,6 +2,7 @@ package com.atguigu.gmall.cart.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.core.exception.OrderException;
 import com.atguigu.gmall.cart.entity.Cart;
 import com.atguigu.gmall.cart.entity.UserInfo;
 import com.atguigu.gmall.cart.feign.GmallPmsClient;
@@ -18,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +47,8 @@ public class CartServiceImpl implements CartService {
     private GmallWmsClient wmsClient;
     @Autowired
     private GmallSmsClient smsClient;
+
+    private String PRICE_PREFIX = "cart:price";
 
 
     @Override
@@ -74,10 +79,11 @@ public class CartServiceImpl implements CartService {
             cart.setSaleVos(saleVos);
             Resp<List<SkuSaleAttrValueEntity>> skuEntitiesResp = this.pmsClient.querySkuSaleAttrBySkuId(cart.getSkuId());
             List<SkuSaleAttrValueEntity> skuSaleAttrValueEntities = skuEntitiesResp.getData();
-            cart.setSkuAttrValue(skuSaleAttrValueEntities);
+            cart.setCorruntPrice(cart.getPrice());
             Resp<List<WareSkuEntity>> wareSkuResp = this.wmsClient.queryWareSkuBySkuId(cart.getSkuId());
             List<WareSkuEntity> wareSkuEntityList = wareSkuResp.getData();
             cart.setStore(wareSkuEntityList.stream().anyMatch(wareSkuEntity -> wareSkuEntity.getStock() > 0));
+            this.redisTemplate.opsForValue().set(PRICE_PREFIX + cart.getSkuId(), cart.getPrice().toString());
         }
         //重新放入redis
         hashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
@@ -94,7 +100,11 @@ public class CartServiceImpl implements CartService {
         BoundHashOperations<String, Object, Object> unboundHashOps = this.redisTemplate.boundHashOps(unLoginKey);
         //获取所有的值（购物车）
         List<Object> cartValues = unboundHashOps.values();
-        List<Cart> unLoginCarts = cartValues.stream().map(cartJson -> JSON.parseObject(cartJson.toString(), Cart.class)).collect(Collectors.toList());
+        List<Cart> unLoginCarts = cartValues.stream().map(cartJson -> {
+            Cart cart = JSON.parseObject(cartJson.toString(), Cart.class);
+            cart.setCorruntPrice(new BigDecimal(this.redisTemplate.opsForValue().get(PRICE_PREFIX + cart.getSkuId())));
+            return cart;
+        }).collect(Collectors.toList());
 
         if (userInfo.getId() != null) {
             //登陆状态下，合并未登录和登陆购物车
@@ -115,7 +125,9 @@ public class CartServiceImpl implements CartService {
             //获取登陆状态下合并后的购物车
             List<Object> loginValues = loginBoundHashOps.values();
             List<Cart> carts = loginValues.stream().map(loginValue -> {
-                return JSON.parseObject(loginValue.toString(), Cart.class);
+                Cart cart = JSON.parseObject(loginValue.toString(), Cart.class);
+                cart.setCorruntPrice(new BigDecimal(this.redisTemplate.opsForValue().get(PRICE_PREFIX + cart.getSkuId())));
+                return cart;
             }).collect(Collectors.toList());
             //删除未登录的购物车
             this.redisTemplate.delete(unLoginKey);
@@ -147,7 +159,21 @@ public class CartServiceImpl implements CartService {
         //获取登陆状态
         String key = getLoginStatus();
         BoundHashOperations<String, Object, Object> boundHashOps = this.redisTemplate.boundHashOps(key);
-        boundHashOps.delete(skuId.toString());
+        if (boundHashOps.hasKey(skuId.toString())) {
+            boundHashOps.delete(skuId.toString());
+        }
+    }
+
+    @Override
+    public List<Cart> queryCartsByUserId(Long userId) {
+        BoundHashOperations<String, Object, Object> boundHashOps = this.redisTemplate.boundHashOps(KEY_PREFIX + userId);
+        List<Object> cartsJson = boundHashOps.values();
+        if (CollectionUtils.isEmpty(cartsJson)) {
+            throw new OrderException("请选择商品");
+        }
+        return cartsJson.stream().
+                map(cartJson -> JSON.parseObject(cartJson.toString(), Cart.class)).filter(Cart::getCheck)
+                .collect(Collectors.toList());
     }
 
     private String getLoginStatus() {

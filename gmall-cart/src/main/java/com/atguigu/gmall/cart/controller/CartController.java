@@ -23,6 +23,14 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+    @PostMapping("{userId}")
+    public Resp<List<Cart>> queryCartsByUserId(@PathVariable("userId") Long userId) {
+        List<Cart> carts = this.cartService.queryCartsByUserId(userId);
+        return Resp.ok(carts);
+
+    }
+
+
     //购物车商品的添加
     @PostMapping("/add")
     public Resp<Object> addCart(@RequestBody Cart cart) {
@@ -43,8 +51,8 @@ public class CartController {
         return Resp.ok(null);
     }
 
-    @PostMapping("/delete")
-    public Resp<Object> deleteCart(@RequestParam("skuId") Long skuId) {
+    @PostMapping("/delete/{skuId}")
+    public Resp<Object> deleteCart(@PathVariable("skuId") Long skuId) {
         this.cartService.deleteCart(skuId);
         return Resp.ok(null);
     }

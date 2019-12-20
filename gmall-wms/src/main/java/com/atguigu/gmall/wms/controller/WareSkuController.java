@@ -1,22 +1,19 @@
 package com.atguigu.gmall.wms.controller;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.atguigu.gmall.wms.entity.WareSkuEntity;
+import com.atguigu.gmall.wms.service.WareSkuService;
+import com.atguigu.gmall.wms.vo.SkuLockVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gmall.wms.entity.WareSkuEntity;
-import com.atguigu.gmall.wms.service.WareSkuService;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -33,12 +30,19 @@ public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
 
+    @PostMapping("/lock")
+    public Resp<String> ckeckedAndLockSkuWare(@RequestBody List<SkuLockVo> lockVos) {
+        String msg = this.wareSkuService.ckeckedAndLockSkuWare(lockVos);
+        return Resp.ok(msg);
+
+    }
+
 
     //通过skuId查询sku
     @GetMapping("/{skuId}")
     public Resp<List<WareSkuEntity>> querySkuInfoById(@PathVariable Long skuId) {
 
-        List<WareSkuEntity> entities= wareSkuService.querySkuInfoById(skuId);
+        List<WareSkuEntity> entities = wareSkuService.querySkuInfoById(skuId);
 
         return Resp.ok(entities);
     }

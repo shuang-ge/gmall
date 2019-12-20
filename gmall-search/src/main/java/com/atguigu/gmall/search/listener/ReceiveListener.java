@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.concurrent.Exchanger;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +42,7 @@ public class ReceiveListener {
 
 
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "Gmall-Save-Queue", durable = "true")
-            , exchange = @Exchange(value = "GMALL-PMS-EXCHANGE", durable = "true", ignoreDeclarationExceptions = "true", type = ExchangeTypes.TOPIC)
+            , exchange = @Exchange(value = "GMALL-PMS-EXCHANGE", ignoreDeclarationExceptions = "true", type = ExchangeTypes.TOPIC)
             , key = {"item.save", "item.insert", "item.update"}))
     public void listen(Long spuId) {
 

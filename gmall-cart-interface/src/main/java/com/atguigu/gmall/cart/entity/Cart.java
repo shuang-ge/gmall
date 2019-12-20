@@ -27,6 +27,8 @@ public class Cart {
 
     private BigDecimal price;
 
+    private BigDecimal corruntPrice;
+
     private Integer count;
 
     private List<SkuSaleAttrValueEntity> skuAttrValue;

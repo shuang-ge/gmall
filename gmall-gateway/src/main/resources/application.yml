@@ -48,6 +48,12 @@ spring:
             - Path=/api/auth/**
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
+        - id: order-service # 订单服务
+          uri: lb://order-service
+          predicates:
+            - Path=/api/order/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
 gmall:
   jwt:
     pubKeyPath: E:\Git\gmallproject\rsa\\rsa.pub # 公钥地址

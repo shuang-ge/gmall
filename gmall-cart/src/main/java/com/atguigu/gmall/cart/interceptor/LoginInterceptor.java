@@ -64,6 +64,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         return THREAD_LOCAL.get();
     }
 
+    //线程结束后自动移除线程内的数据，防止内存泄漏
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         THREAD_LOCAL.remove();

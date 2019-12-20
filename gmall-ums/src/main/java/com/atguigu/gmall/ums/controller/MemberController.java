@@ -1,21 +1,17 @@
 package com.atguigu.gmall.ums.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
-import feign.Param;
+import com.atguigu.gmall.ums.entity.MemberEntity;
+import com.atguigu.gmall.ums.service.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gmall.ums.entity.MemberEntity;
-import com.atguigu.gmall.ums.service.MemberService;
+import java.util.Arrays;
 
 
 /**
@@ -50,6 +46,12 @@ public class MemberController {
     public Resp<MemberEntity> queryUser(@RequestParam("username") String username, @RequestParam("password") String password) {
         MemberEntity memberEntity = this.memberService.queryUser(username, password);
         return Resp.ok(memberEntity);
+    }
+
+    @PostMapping("/sendsms")
+    public Resp<Object> sendSms(String phoneNum) {
+        this.memberService.sendSms(phoneNum);
+        return Resp.ok(null);
     }
 
 

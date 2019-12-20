@@ -43,6 +43,4 @@ public class AuthController {
         }
         throw new MemberException("用户名或密码错误");
     }
-
-
 }
