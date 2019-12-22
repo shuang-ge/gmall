@@ -1,6 +1,7 @@
 package com.atguigu.gmall.sms.feign;
 
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.sms.entity.SkuBoundsEntity;
 import com.atguigu.gmall.sms.vo.SaleVo;
 import com.atguigu.gmall.sms.vo.SkuSaleVo;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,4 +26,7 @@ public interface GmallSmsApi {
 
     @GetMapping("sms/skubounds/sales/{skuId}")
     public Resp<List<SaleVo>> queryBoundsAndAdderBySkuId(@PathVariable("skuId") Long skuId);
+
+    @PostMapping("sms/skubounds/sku/{skuId}")
+    public Resp<SkuBoundsEntity> queryBoundsBySkuId(@PathVariable("skuId") Long skuId);
 }

@@ -3,7 +3,6 @@ package com.atguigu.gmall.gateway.filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
     @Autowired
-    private GatewayFilter gatewayFilter;
+    private AuthGatewayFilter gatewayFilter;
 
 
     @Override

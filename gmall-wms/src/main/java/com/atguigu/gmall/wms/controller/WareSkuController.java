@@ -33,8 +33,10 @@ public class WareSkuController {
     @PostMapping("/lock")
     public Resp<String> ckeckedAndLockSkuWare(@RequestBody List<SkuLockVo> lockVos) {
         String msg = this.wareSkuService.ckeckedAndLockSkuWare(lockVos);
-        return Resp.ok(msg);
-
+        if (msg != null) {
+            return Resp.fail(msg);
+        }
+        return Resp.ok(null);
     }
 
 

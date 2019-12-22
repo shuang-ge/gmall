@@ -62,4 +62,7 @@ public interface GmallPmsApi {
 
     @GetMapping("pms/skusaleattrvalue/cart/{skuId}")
     public Resp<List<SkuSaleAttrValueEntity>> querySkuSaleAttrBySkuId(@PathVariable("skuId") Long skuId);
+
+    @GetMapping("pms/brand/info/{brandId}")
+    public Resp<BrandEntity> queryBoundsById(@PathVariable("brandId") Long brandId);
 }

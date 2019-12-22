@@ -1,7 +1,9 @@
 package com.atguigu.gmall.order.service;
 
+import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.oms.entity.OrderEntity;
+import com.atguigu.gmall.oms.vo.OrderSubmitVo;
 import com.atguigu.gmall.order.vo.OrderConfirmVo;
-import com.atguigu.gmall.order.vo.OrderSubmitVo;
 
 /**
  * \* Created with IntelliJ IDEA.
@@ -15,5 +17,7 @@ import com.atguigu.gmall.order.vo.OrderSubmitVo;
 public interface OrderService {
     OrderConfirmVo confirm();
 
-    void submitOrder(OrderSubmitVo orderSubmitVo);
+    Resp<OrderEntity> submitOrder(OrderSubmitVo orderSubmitVo);
+
+    OrderEntity queryOrder(String orderToken);
 }

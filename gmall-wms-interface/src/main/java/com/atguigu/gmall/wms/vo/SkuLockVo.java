@@ -18,4 +18,6 @@ public class SkuLockVo {
     private Integer count;
     private Long wareId;//被锁定商品的wms_ware_sku id
     private Boolean checked; //是否被锁定
+
+    private String token;
 }

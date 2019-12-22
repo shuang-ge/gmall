@@ -1,5 +1,6 @@
 package com.atguigu.gmall.wms.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.Query;
 import com.atguigu.core.bean.QueryCondition;
@@ -12,8 +13,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -28,6 +32,14 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
     @Autowired
     private RedissonClient redissonClient;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    public static final String STOCK_PREFIX = "wms:stock:";
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
 
     @Override
     public PageVo queryPage(QueryCondition params) {
@@ -48,6 +60,7 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     }
 
     @Override
+    @Transactional
     public String ckeckedAndLockSkuWare(List<SkuLockVo> lockVos) {
         if (CollectionUtils.isEmpty(lockVos)) {
             return "没有选中的商品";
@@ -62,6 +75,9 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             lockVoList.forEach(skuLockVo -> this.wareSkuDao.unlockedStore(skuLockVo.getWareId(), skuLockVo.getCount()));
             return "商品：" + unLockList.toString() + "库存不足";
         }
+        SkuLockVo skuLockVo = lockVos.get(0);
+        this.redisTemplate.opsForValue().set(STOCK_PREFIX + skuLockVo.getToken(), JSON.toJSONString(lockVos));
+        this.amqpTemplate.convertAndSend("Gmall-Order-Exchange", "stock.ttl", skuLockVo.getToken());
         return null;
     }
 

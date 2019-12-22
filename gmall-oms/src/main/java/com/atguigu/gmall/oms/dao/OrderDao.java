@@ -6,12 +6,15 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 订单
- * 
+ *
  * @author shuangge
  * @email 2511937971@qq.com
  * @date 2019-12-03 18:39:51
  */
 @Mapper
 public interface OrderDao extends BaseMapper<OrderEntity> {
-	
+
+    public int closeDao(String orderToken);
+
+    public int minusStock(String orderToken);
 }

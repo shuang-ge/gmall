@@ -132,7 +132,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         String code = UUID.randomUUID().toString().replace("-", "").substring(0, 6);
         // 发送
         flag = true;
-        this.smsTemplates.sendSms(mobile, code, "TP1711063");
+       // this.smsTemplates.sendSms(mobile, code, "TP1711063");
         if (!flag) {
             // 发送失败
             return "短信发送失败";

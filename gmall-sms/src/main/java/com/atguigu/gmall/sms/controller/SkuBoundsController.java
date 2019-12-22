@@ -1,22 +1,20 @@
 package com.atguigu.gmall.sms.controller;
 
-import java.util.Arrays;
-import java.util.List;
-
-
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.sms.entity.SkuBoundsEntity;
+import com.atguigu.gmall.sms.service.SkuBoundsService;
 import com.atguigu.gmall.sms.vo.SaleVo;
+import com.atguigu.gmall.sms.vo.SkuSaleVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gmall.sms.entity.SkuBoundsEntity;
-import com.atguigu.gmall.sms.service.SkuBoundsService;
-import com.atguigu.gmall.sms.vo.SkuSaleVo;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -38,6 +36,13 @@ public class SkuBoundsController {
         List<SaleVo> saleVos = this.skuBoundsService.queryBoundsBySkuId(skuId);
         return Resp.ok(saleVos);
 
+    }
+
+    @PostMapping("sku/{skuId}")
+    public Resp<SkuBoundsEntity> queryBoundsBySkuId(@PathVariable("skuId") Long skuId) {
+        SkuBoundsEntity skuBounds = skuBoundsService.queryBoundByskuId(skuId);
+
+        return Resp.ok(skuBounds);
     }
 
 
